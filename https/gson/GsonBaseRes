@@ -1,0 +1,8 @@
+public class GsonBaseRes {
+    public Response response;
+    public class Response
+    {
+        public int code;
+        public String message;
+    }
+}
