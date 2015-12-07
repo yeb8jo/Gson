@@ -1,0 +1,53 @@
+
+import android.content.Loader;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+
+import com.google.gson.Gson;
+
+import example.gsontest.http.request.Req;
+import example.gsontest.http.response.GsonRes;
+import example.gsontest.http.response.Res;
+
+public class MainActivity extends AppCompatActivity {
+    private static Gson gson;
+    private static Req req;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        getGson();
+    }
+
+    private void getGson() {
+        gson = new Gson();
+
+        req = new Req(this);
+        req.setReqCallbacks(reqCallbacks);
+
+        getLoaderManager().initLoader(Const.REQ_ID, null, req).forceLoad();
+    }
+
+
+    private Req.ReqCallbacks reqCallbacks = new Req.ReqCallbacks() {
+        @Override
+        public void onLoadFinished(Loader<Res> loader, Res res) {
+            switch(loader.getId()){
+                case Const.REQ_ID :
+                    getLoaderManager().destroyLoader(Const.REQ_ID);
+                    GsonRes gsonRes = gson.fromJson(res.data, GsonRes.class);
+
+                    break;
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Res> loader) {
+        }
+    };
+
+
+}
