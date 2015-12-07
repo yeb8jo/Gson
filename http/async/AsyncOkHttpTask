@@ -1,0 +1,148 @@
+
+import android.content.AsyncTaskLoader;
+import android.content.Context;
+
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import example.gsontest.http.response.Res;
+
+public class AsyncOkHttpTask extends AsyncTaskLoader<Res> implements Future<Res> {
+
+    private Request request;
+    private static Res res = null;
+    int connectTimeout;
+    int readTimeout;
+
+    public AsyncOkHttpTask(Context context, Request request, int connectTimeout, int readTimeout) {
+        super(context);
+        this.request = request;
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
+    }
+
+
+    /* 実際に通信処理を行う */
+    @Override
+    public Res loadInBackground() {
+        OkHttpClient client = new OkHttpClient();
+        client.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
+        client.setReadTimeout(readTimeout, TimeUnit.SECONDS);
+
+        res = getResult();
+        try {
+            Response response = client.newCall(request).execute();
+            res.code = response.code();
+            if(res.code != 200){
+                res.data = null;
+            } else {
+                res.data = response.body().string();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            res.e = e;
+        }
+
+        return res;
+    }
+
+    private Res getResult()
+    {
+        if(null == res)
+            res = new Res();
+        return res;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    @Override
+    public void deliverResult(Res data)
+    {
+        if (isReset())
+        {
+            if (this.res != null)
+            {
+                this.res = null;
+            }
+            return;
+        }
+        this.res = data;
+        if (isStarted())
+        {
+            if (null != data)
+                super.deliverResult(data);
+        }
+    }
+
+    @Override
+    protected void onStartLoading()
+    {
+        if (this.res != null) {  }
+        if (takeContentChanged() || this.res == null)
+        {
+            forceLoad();
+        }
+    }
+
+    @Override
+    protected void onStopLoading()
+    {
+        super.onStopLoading();
+        cancelLoad();
+    }
+    @Override
+    protected void onReset()
+    {
+        super.onReset();
+        onStopLoading();
+    }
+
+
+
+
+
+
+
+
+
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return false;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
+    public boolean isDone() {
+        return false;
+    }
+
+    @Override
+    public Res get() throws InterruptedException, ExecutionException {
+        return null;
+    }
+
+    @Override
+    public Res get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return null;
+    }
+}
