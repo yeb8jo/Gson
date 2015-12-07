@@ -1,0 +1,75 @@
+
+import android.app.LoaderManager;
+import android.content.Context;
+import android.content.Loader;
+import android.os.Bundle;
+
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+
+import java.util.Date;
+
+import example.gsontest.Const;
+import example.gsontest.http.async.AsyncOkHttpTask;
+import example.gsontest.http.response.Res;
+
+public class Req extends BaseRequest implements LoaderManager.LoaderCallbacks<Res> {
+
+    private Context mContext;
+    public String param01;
+    public String param02;
+    public String dateTime;
+    
+    public Req(Context context) {
+        mContext = context;
+    }
+
+
+    public interface ReqCallbacks{
+        public void onLoadFinished(Loader<Res> loader, Res res);
+        public void onLoaderReset(Loader<Res> loader);
+    }
+    private static ReqCallbacks mReqCallbacks;
+    public void setReqCallbacks(ReqCallbacks l){
+        mReqCallbacks = l;
+    }
+
+
+
+
+    @Override
+    public Loader<Res> onCreateLoader(int id, Bundle args) {
+        param01 = PreferencesUtils.getPreferences(mContext, PreferencesUtils.param01, "");
+        param02 = PreferencesUtils.getPreferences(mContext, PreferencesUtils.param02,"");
+        dateTime = getDateTimeString(new Date(), FORMAT);
+
+
+
+        RequestBody body = new FormEncodingBuilder()
+                .add("param01", param01)
+                .add("param02", param02)
+                .add("dateTime", dateTime)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(Const.URL)
+                .build();
+
+        AsyncOkHttpTask aohgt = new AsyncOkHttpTask(mContext, request, 10, 10);
+        aohgt.forceLoad();
+        return aohgt;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Res> loader, Res res) {
+        if(null != mReqCallbacks)
+            mReqCallbacks.onLoadFinished(loader, res);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Res> loader) {
+        if(null != mReqCallbacks)
+            mReqCallbacks.onLoaderReset(loader);
+    }
+}
