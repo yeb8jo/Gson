@@ -1,0 +1,19 @@
+
+import com.squareup.okhttp.MediaType;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class BaseRequest
+{
+    final MediaType TEXT = MediaType.parse("text/plain; charset=utf-8");
+    protected static final String FORMAT = "yyyyMMddhhmmss";
+
+
+
+    public static String getDateTimeString(Date date,String format)
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        return sdf.format(date);
+    }
+}
